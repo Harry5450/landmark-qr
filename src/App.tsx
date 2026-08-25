@@ -135,7 +135,7 @@ export default function App() {
           </div>
 
           <div className="scene-frame">
-            <LandmarkScene value={encodedUrl} landmarkId={landmarkId} />
+            <LandmarkScene value={encodedUrl} landmarkId={landmarkId} scanMode={scanOpen} />
             <div className="scene-tip">Drag to rotate · Pinch to zoom</div>
           </div>
 

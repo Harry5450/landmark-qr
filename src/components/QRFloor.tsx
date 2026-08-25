@@ -4,9 +4,10 @@ import * as THREE from 'three'
 
 type QRFloorProps = {
   value: string
+  scanSafe?: boolean
 }
 
-export function QRFloor({ value }: QRFloorProps) {
+export function QRFloor({ value, scanSafe = false }: QRFloorProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null)
 
   const matrix = useMemo(() => {
@@ -46,20 +47,28 @@ export function QRFloor({ value }: QRFloorProps) {
 
   return (
     <group>
-      <mesh position={[0, -0.055, 0]} receiveShadow>
+      <mesh position={[0, -0.055, 0]} receiveShadow={!scanSafe}>
         <boxGeometry args={[baseSize, 0.11, baseSize]} />
-        <meshStandardMaterial color="#f8fafc" roughness={0.94} />
+        {scanSafe ? (
+          <meshBasicMaterial color="#ffffff" />
+        ) : (
+          <meshStandardMaterial color="#f8fafc" roughness={0.94} />
+        )}
       </mesh>
 
       <instancedMesh
         ref={meshRef}
         args={[undefined, undefined, matrix.cells.length]}
-        castShadow
-        receiveShadow
+        castShadow={!scanSafe}
+        receiveShadow={!scanSafe}
         frustumCulled={false}
       >
         <boxGeometry args={[unit * 0.9, 0.14, unit * 0.9]} />
-        <meshStandardMaterial color="#111827" roughness={0.72} metalness={0.04} />
+        {scanSafe ? (
+          <meshBasicMaterial color="#0b1020" />
+        ) : (
+          <meshStandardMaterial color="#111827" roughness={0.72} metalness={0.04} />
+        )}
       </instancedMesh>
     </group>
   )

@@ -10,6 +10,29 @@ export type LandmarkId =
   | 'christ-redeemer'
   | 'burj-khalifa'
 
+export type LandmarkVector3 = [number, number, number]
+
+export type LandmarkTransform = {
+  scale: number | LandmarkVector3
+  position: LandmarkVector3
+  rotation: LandmarkVector3
+}
+
+export type LandmarkSource =
+  | {
+      type: 'procedural'
+    }
+  | {
+      type: 'glb'
+      src: string
+      fallback?: boolean
+    }
+
+export type LandmarkCamera = {
+  distance: number
+  targetY: number
+}
+
 export type Landmark = {
   id: LandmarkId
   name: string
@@ -18,6 +41,20 @@ export type Landmark = {
   emoji: string
   ready: boolean
   accent: string
+  source: LandmarkSource
+  transform: LandmarkTransform
+  camera: LandmarkCamera
+}
+
+const defaultTransform: LandmarkTransform = {
+  scale: 1,
+  position: [0, 0, 0],
+  rotation: [0, 0, 0],
+}
+
+const defaultCamera: LandmarkCamera = {
+  distance: 8,
+  targetY: 1.5,
 }
 
 export const landmarks: Landmark[] = [
@@ -29,6 +66,19 @@ export const landmarks: Landmark[] = [
     emoji: '🇹🇼',
     ready: true,
     accent: '#20c7b7',
+    source: {
+      type: 'glb',
+      src: '/models/taipei-101.glb',
+      fallback: true,
+    },
+    transform: {
+      ...defaultTransform,
+      scale: 1,
+    },
+    camera: {
+      distance: 8,
+      targetY: 2.5,
+    },
   },
   {
     id: 'eiffel-tower',
@@ -38,6 +88,9 @@ export const landmarks: Landmark[] = [
     emoji: '🇫🇷',
     ready: true,
     accent: '#c99a63',
+    source: { type: 'procedural' },
+    transform: { ...defaultTransform },
+    camera: { distance: 8, targetY: 1.7 },
   },
   {
     id: 'sydney-opera-house',
@@ -47,6 +100,9 @@ export const landmarks: Landmark[] = [
     emoji: '🇦🇺',
     ready: true,
     accent: '#f1efe9',
+    source: { type: 'procedural' },
+    transform: { ...defaultTransform },
+    camera: { distance: 7.5, targetY: 0.9 },
   },
   {
     id: 'statue-of-liberty',
@@ -56,6 +112,9 @@ export const landmarks: Landmark[] = [
     emoji: '🇺🇸',
     ready: false,
     accent: '#69b7a8',
+    source: { type: 'procedural' },
+    transform: { ...defaultTransform },
+    camera: { ...defaultCamera },
   },
   {
     id: 'big-ben',
@@ -65,6 +124,9 @@ export const landmarks: Landmark[] = [
     emoji: '🇬🇧',
     ready: false,
     accent: '#d0a65c',
+    source: { type: 'procedural' },
+    transform: { ...defaultTransform },
+    camera: { ...defaultCamera },
   },
   {
     id: 'colosseum',
@@ -74,6 +136,9 @@ export const landmarks: Landmark[] = [
     emoji: '🇮🇹',
     ready: false,
     accent: '#d89b72',
+    source: { type: 'procedural' },
+    transform: { ...defaultTransform },
+    camera: { ...defaultCamera },
   },
   {
     id: 'giza-pyramid',
@@ -83,6 +148,9 @@ export const landmarks: Landmark[] = [
     emoji: '🇪🇬',
     ready: false,
     accent: '#d8b66b',
+    source: { type: 'procedural' },
+    transform: { ...defaultTransform },
+    camera: { ...defaultCamera },
   },
   {
     id: 'taj-mahal',
@@ -92,6 +160,9 @@ export const landmarks: Landmark[] = [
     emoji: '🇮🇳',
     ready: false,
     accent: '#eee7d7',
+    source: { type: 'procedural' },
+    transform: { ...defaultTransform },
+    camera: { ...defaultCamera },
   },
   {
     id: 'christ-redeemer',
@@ -101,6 +172,9 @@ export const landmarks: Landmark[] = [
     emoji: '🇧🇷',
     ready: false,
     accent: '#d8ded8',
+    source: { type: 'procedural' },
+    transform: { ...defaultTransform },
+    camera: { ...defaultCamera },
   },
   {
     id: 'burj-khalifa',
@@ -110,6 +184,9 @@ export const landmarks: Landmark[] = [
     emoji: '🇦🇪',
     ready: false,
     accent: '#8ca8b9',
+    source: { type: 'procedural' },
+    transform: { ...defaultTransform },
+    camera: { ...defaultCamera },
   },
 ]
 

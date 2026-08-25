@@ -377,6 +377,40 @@ input:focus-visible {
   min-height: 590px;
 }
 
+.scene-status {
+  display: grid;
+  min-height: 590px;
+  place-items: center;
+  padding: 32px;
+  color: #aab7ca;
+  background: rgba(8, 14, 26, 0.9);
+  font-size: 0.84rem;
+  text-align: center;
+}
+
+.scene-status.is-error {
+  color: #f1b5b5;
+}
+
+.glb-state {
+  width: max-content;
+  max-width: 150px;
+  padding: 6px 9px;
+  border: 1px solid rgba(132, 244, 231, 0.28);
+  border-radius: 8px;
+  color: #b9fff6;
+  background: rgba(5, 12, 20, 0.78);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.glb-state.is-error {
+  border-color: rgba(255, 166, 166, 0.36);
+  color: #ffd3d3;
+}
+
 .scene-tip {
   position: absolute;
   bottom: 14px;
