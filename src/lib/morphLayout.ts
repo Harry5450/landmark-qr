@@ -10,8 +10,10 @@ export type MorphVector3 = readonly [x: number, y: number, z: number]
 export type MorphPoint = {
   cell: QrDarkCell
   start: MorphVector3
+  flat: MorphVector3
   target: MorphVector3
   startScale: MorphVector3
+  flatScale: MorphVector3
   targetScale: MorphVector3
   delay: number
 }
@@ -32,7 +34,7 @@ export type CreateMorphLayoutOptions = {
 export const MORPH_MAX_MODULE_SIZE = 0.18
 export const MORPH_QR_EXTENT = 7.2
 export const MORPH_TARGET_Y = 0.09
-export const MORPH_MAX_DELAY = 0.22
+export const MORPH_MAX_DELAY = 0.06
 
 function hashString(value: string) {
   let hash = 2166136261
@@ -148,6 +150,27 @@ function landmarkStartPoint(
   return genericTowerPoint(index, count, random)
 }
 
+function flattenedLandmarkPoint(
+  landmarkId: LandmarkId,
+  start: MorphVector3,
+): MorphVector3 {
+  if (landmarkId === 'sydney-opera-house') {
+    return [start[0], MORPH_TARGET_Y, start[2]]
+  }
+
+  return [
+    start[0] * 1.14,
+    MORPH_TARGET_Y,
+    (start[1] - 3.42) * 0.88 + start[2] * 0.08,
+  ]
+}
+
+function planarDistanceSquared(a: MorphVector3, b: MorphVector3) {
+  const dx = a[0] - b[0]
+  const dz = a[2] - b[2]
+  return dx * dx + dz * dz
+}
+
 export function createMorphLayout({
   value,
   landmarkId,
@@ -164,27 +187,54 @@ export function createMorphLayout({
   const seed = hashString(`${landmarkId}:${value}:${matrix.size}`)
   const random = mulberry32(seed)
 
-  const points = matrix.darkCells.map((cell, index): MorphPoint => {
-    const [column, row] = cell
+  const sources = matrix.darkCells.map((_, index) => {
     const start = landmarkStartPoint(
       landmarkId,
       index,
       matrix.darkCells.length,
       random,
     )
+    const flat = flattenedLandmarkPoint(landmarkId, start)
     const scaleNoise = 0.48 + random() * 0.22
 
     return {
-      cell,
       start,
-      target: [
+      flat,
+      startScale: [scaleNoise, 0.58 + random() * 0.28, scaleNoise] as MorphVector3,
+      flatScale: [scaleNoise * 0.92, 0.2, scaleNoise * 0.92] as MorphVector3,
+      delay: random() * MORPH_MAX_DELAY,
+    }
+  })
+  const remainingSources = [...sources]
+
+  const points = matrix.darkCells.map((cell): MorphPoint => {
+    const [column, row] = cell
+    const target: MorphVector3 = [
         (column - center) * resolvedModuleSize,
         MORPH_TARGET_Y,
         (row - center) * resolvedModuleSize,
-      ],
-      startScale: [scaleNoise, 0.58 + random() * 0.28, scaleNoise],
+      ]
+    let nearestIndex = 0
+    let nearestDistance = Number.POSITIVE_INFINITY
+
+    remainingSources.forEach((source, sourceIndex) => {
+      const distance = planarDistanceSquared(source.flat, target)
+      if (distance < nearestDistance) {
+        nearestDistance = distance
+        nearestIndex = sourceIndex
+      }
+    })
+
+    const [source] = remainingSources.splice(nearestIndex, 1)
+    return {
+      cell,
+      start: source.start,
+      flat: source.flat,
+      target,
+      startScale: source.startScale,
+      flatScale: source.flatScale,
       targetScale: [1, 0.42, 1],
-      delay: random() * MORPH_MAX_DELAY,
+      delay: source.delay,
     }
   })
 

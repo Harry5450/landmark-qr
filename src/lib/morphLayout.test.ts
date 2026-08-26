@@ -31,7 +31,19 @@ describe('createMorphLayout', () => {
         MORPH_TARGET_Y,
         (row - center) * layout.moduleSize,
       ])
+      expect(point.flat[1]).toBe(MORPH_TARGET_Y)
     })
+  })
+
+  it('collapses the landmark to a shallow plane before QR alignment', () => {
+    const layout = createMorphLayout({ value: VALUE, landmarkId: 'taipei-101' })
+
+    expect(layout.points.every((point) => point.flat[1] === MORPH_TARGET_Y)).toBe(
+      true,
+    )
+    expect(Math.max(...layout.points.map((point) => point.flatScale[1]))).toBe(
+      0.2,
+    )
   })
 
   it('keeps QR targets inside the matrix and the four-module quiet-zone plane', () => {

@@ -40,16 +40,48 @@ function writeInstances(
 
   layout.points.forEach((point, index) => {
     const localProgress = delayedMorphProgress(progress, point.delay)
+    const flattenProgress = THREE.MathUtils.smoothstep(localProgress, 0, 0.5)
+    const alignProgress = THREE.MathUtils.smoothstep(localProgress, 0.42, 1)
+    const flattenedX = THREE.MathUtils.lerp(
+      point.start[0],
+      point.flat[0],
+      flattenProgress,
+    )
+    const flattenedY = THREE.MathUtils.lerp(
+      point.start[1],
+      point.flat[1],
+      flattenProgress,
+    )
+    const flattenedZ = THREE.MathUtils.lerp(
+      point.start[2],
+      point.flat[2],
+      flattenProgress,
+    )
     dummy.position.set(
-      THREE.MathUtils.lerp(point.start[0], point.target[0], localProgress),
-      THREE.MathUtils.lerp(point.start[1], point.target[1], localProgress),
-      THREE.MathUtils.lerp(point.start[2], point.target[2], localProgress),
+      THREE.MathUtils.lerp(flattenedX, point.target[0], alignProgress),
+      THREE.MathUtils.lerp(flattenedY, point.target[1], alignProgress),
+      THREE.MathUtils.lerp(flattenedZ, point.target[2], alignProgress),
     )
     dummy.rotation.set(0, 0, 0)
+    const flattenedScaleX = THREE.MathUtils.lerp(
+      point.startScale[0],
+      point.flatScale[0],
+      flattenProgress,
+    )
+    const flattenedScaleY = THREE.MathUtils.lerp(
+      point.startScale[1],
+      point.flatScale[1],
+      flattenProgress,
+    )
+    const flattenedScaleZ = THREE.MathUtils.lerp(
+      point.startScale[2],
+      point.flatScale[2],
+      flattenProgress,
+    )
     dummy.scale.set(
-      THREE.MathUtils.lerp(point.startScale[0], point.targetScale[0], localProgress),
-      THREE.MathUtils.lerp(point.startScale[1], point.targetScale[1], localProgress),
-      THREE.MathUtils.lerp(point.startScale[2], point.targetScale[2], localProgress),
+      THREE.MathUtils.lerp(flattenedScaleX, point.targetScale[0], alignProgress),
+      THREE.MathUtils.lerp(flattenedScaleY, point.targetScale[1], alignProgress),
+      THREE.MathUtils.lerp(flattenedScaleZ, point.targetScale[2], alignProgress),
     )
     dummy.updateMatrix()
     mesh.setMatrixAt(index, dummy.matrix)
@@ -94,15 +126,15 @@ export function QRMorphField({
     writeInstances(mesh, layout, morphProgress)
     if (groupRef.current) {
       const fieldScale = THREE.MathUtils.lerp(
-        0.62,
+        0.76,
         1,
-        THREE.MathUtils.smoothstep(clampedProgress, 0.18, 0.96),
+        THREE.MathUtils.smoothstep(clampedProgress, 0.42, 0.98),
       )
       groupRef.current.scale.setScalar(fieldScale)
       groupRef.current.rotation.y = THREE.MathUtils.lerp(
-        0.34,
+        0.18,
         0,
-        THREE.MathUtils.smoothstep(clampedProgress, 0.08, 0.82),
+        THREE.MathUtils.smoothstep(clampedProgress, 0.04, 0.58),
       )
     }
     if (materialRef.current) {
@@ -110,7 +142,7 @@ export function QRMorphField({
         .copy(landmarkColor)
         .lerp(
           QR_COLOR,
-          THREE.MathUtils.smoothstep(clampedProgress, 0.28, 0.84),
+          THREE.MathUtils.smoothstep(clampedProgress, 0.52, 0.92),
         )
       materialRef.current.opacity = THREE.MathUtils.smoothstep(
         clampedProgress,
@@ -199,8 +231,8 @@ export function QRMorphField({
     <group
       ref={groupRef}
       name="qr-morph-field"
-      rotation={[0, 0.34, 0]}
-      scale={0.62}
+      rotation={[0, 0.18, 0]}
+      scale={0.76}
     >
       <mesh
         position={[0, 0, 0]}

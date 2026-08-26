@@ -445,8 +445,9 @@ input:focus-visible {
 .landmark-concept-layer.is-revealing,
 .landmark-concept-layer.is-scan {
   opacity: 0;
-  transform: translateY(12%) scale(0.76);
-  filter: blur(7px);
+  transform: perspective(1000px) rotateX(68deg) translateY(8%) scale(0.9, 0.5);
+  transform-origin: 50% 74%;
+  filter: saturate(0.86) brightness(0.92);
   pointer-events: none;
 }
 

@@ -5,7 +5,7 @@ import type { LandmarkCamera } from '../data/landmarks'
 import type { ExperiencePhase } from '../hooks/useExperiencePhase'
 
 /** Shared by the camera, landmark mesh, and QR-particle morph. */
-export const REVEAL_DURATION_SECONDS = 1.5
+export const REVEAL_DURATION_SECONDS = 1.6
 export const RETURN_DURATION_SECONDS = REVEAL_DURATION_SECONDS
 
 /** The landmark finishes receding before the camera reaches the scan pose. */

@@ -41,8 +41,10 @@ true-alpha PNG cutout in `public/assets/references/`. This is a deliberate 2.5D
 bridge: it gives the opening frame the requested architectural fidelity while the
 production GLB is still unavailable. The cutout runs a continuous turntable
 motion and also responds to horizontal drag. Clicking the building fades it into
-a deterministic, tiered Taipei 101 instanced-module silhouette, then moves those
-same modules into the QR plane. The final H-level QR excavates only a bounded
+a deterministic, tiered Taipei 101 instanced-module silhouette. The modules first
+collapse in depth into a flat landmark silhouette, then travel only within that
+plane to their nearest QR positions; the white substrate appears only at the end.
+The final H-level QR excavates only a bounded
 center area for a Taipei 101 mark; its finder patterns and four-module quiet zone
 remain untouched and are covered by automated decode read-back.
 
