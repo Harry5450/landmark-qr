@@ -44,6 +44,7 @@ export type Landmark = {
   source: LandmarkSource
   transform: LandmarkTransform
   camera: LandmarkCamera
+  conceptImage?: string
 }
 
 const defaultTransform: LandmarkTransform = {
@@ -57,6 +58,14 @@ const defaultCamera: LandmarkCamera = {
   targetY: 1.5,
 }
 
+function modelAssetPath(fileName: string) {
+  return `${import.meta.env.BASE_URL}models/${fileName}`
+}
+
+function referenceAssetPath(fileName: string) {
+  return `${import.meta.env.BASE_URL}assets/references/${fileName}`
+}
+
 export const landmarks: Landmark[] = [
   {
     id: 'taipei-101',
@@ -68,7 +77,7 @@ export const landmarks: Landmark[] = [
     accent: '#20c7b7',
     source: {
       type: 'glb',
-      src: '/models/taipei-101.glb',
+      src: modelAssetPath('taipei-101.glb'),
       fallback: true,
     },
     transform: {
@@ -79,6 +88,7 @@ export const landmarks: Landmark[] = [
       distance: 8,
       targetY: 2.5,
     },
+    conceptImage: referenceAssetPath('taipei-101-concept-transparent.png'),
   },
   {
     id: 'eiffel-tower',

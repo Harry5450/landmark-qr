@@ -1,0 +1,221 @@
+import { useFrame } from '@react-three/fiber'
+import { useLayoutEffect, useMemo, useRef } from 'react'
+import * as THREE from 'three'
+import { landmarks, type LandmarkId } from '../data/landmarks'
+import type { ExperiencePhase } from '../hooks/useExperiencePhase'
+import {
+  createMorphLayout,
+  delayedMorphProgress,
+  type MorphLayout,
+} from '../lib/morphLayout'
+import {
+  REVEAL_DURATION_SECONDS,
+  RETURN_DURATION_SECONDS,
+} from './SceneCameraController'
+
+const MAX_DELTA_SECONDS = 1 / 20
+const QR_COLOR = new THREE.Color('#0b1020')
+
+type QRMorphFieldProps = {
+  value: string
+  landmarkId: LandmarkId
+  phase: ExperiencePhase
+  reducedMotion?: boolean
+}
+
+type MorphTransition = {
+  phase: 'revealing' | 'returning'
+  elapsedSeconds: number
+  durationSeconds: number
+  fromProgress: number
+  toProgress: number
+}
+
+function writeInstances(
+  mesh: THREE.InstancedMesh,
+  layout: MorphLayout,
+  progress: number,
+) {
+  const dummy = new THREE.Object3D()
+
+  layout.points.forEach((point, index) => {
+    const localProgress = delayedMorphProgress(progress, point.delay)
+    dummy.position.set(
+      THREE.MathUtils.lerp(point.start[0], point.target[0], localProgress),
+      THREE.MathUtils.lerp(point.start[1], point.target[1], localProgress),
+      THREE.MathUtils.lerp(point.start[2], point.target[2], localProgress),
+    )
+    dummy.rotation.set(0, 0, 0)
+    dummy.scale.set(
+      THREE.MathUtils.lerp(point.startScale[0], point.targetScale[0], localProgress),
+      THREE.MathUtils.lerp(point.startScale[1], point.targetScale[1], localProgress),
+      THREE.MathUtils.lerp(point.startScale[2], point.targetScale[2], localProgress),
+    )
+    dummy.updateMatrix()
+    mesh.setMatrixAt(index, dummy.matrix)
+  })
+
+  mesh.instanceMatrix.needsUpdate = true
+  mesh.computeBoundingSphere()
+}
+
+export function QRMorphField({
+  value,
+  landmarkId,
+  phase,
+  reducedMotion = false,
+}: QRMorphFieldProps) {
+  const meshRef = useRef<THREE.InstancedMesh>(null)
+  const materialRef = useRef<THREE.MeshBasicMaterial>(null)
+  const planeMaterialRef = useRef<THREE.MeshBasicMaterial>(null)
+  const previousPhaseRef = useRef<ExperiencePhase | null>(null)
+  const progressRef = useRef(phase === 'scan' ? 1 : 0)
+  const transitionRef = useRef<MorphTransition | null>(null)
+  const layout = useMemo(
+    () => createMorphLayout({ value, landmarkId }),
+    [landmarkId, value],
+  )
+  const landmarkColor = useMemo(
+    () =>
+      new THREE.Color(
+        landmarks.find((landmark) => landmark.id === landmarkId)?.accent ?? '#374151',
+      ),
+    [landmarkId],
+  )
+
+  const applyProgress = (progress: number) => {
+    const mesh = meshRef.current
+    if (!mesh) return
+
+    const clampedProgress = THREE.MathUtils.clamp(progress, 0, 1)
+    progressRef.current = clampedProgress
+    writeInstances(mesh, layout, clampedProgress)
+    if (materialRef.current) {
+      materialRef.current.color
+        .copy(landmarkColor)
+        .lerp(QR_COLOR, clampedProgress)
+      materialRef.current.opacity = THREE.MathUtils.smoothstep(
+        clampedProgress,
+        0.02,
+        0.22,
+      )
+    }
+    if (planeMaterialRef.current) {
+      planeMaterialRef.current.opacity = THREE.MathUtils.smoothstep(
+        clampedProgress,
+        0.15,
+        0.8,
+      )
+    }
+  }
+
+  useLayoutEffect(() => {
+    const previousPhase = previousPhaseRef.current
+
+    if (phase === 'revealing' && previousPhase !== 'revealing') {
+      transitionRef.current = {
+        phase,
+        elapsedSeconds: 0,
+        durationSeconds: reducedMotion ? 0 : REVEAL_DURATION_SECONDS,
+        fromProgress: progressRef.current,
+        toProgress: 1,
+      }
+    } else if (phase === 'returning' && previousPhase !== 'returning') {
+      transitionRef.current = {
+        phase,
+        elapsedSeconds: 0,
+        durationSeconds: reducedMotion ? 0 : RETURN_DURATION_SECONDS,
+        fromProgress: progressRef.current,
+        toProgress: 0,
+      }
+    } else if (phase === 'scan') {
+      transitionRef.current = null
+      applyProgress(1)
+    } else if (phase === 'explore') {
+      transitionRef.current = null
+      applyProgress(0)
+    } else if (previousPhase === null) {
+      applyProgress(0)
+    }
+
+    previousPhaseRef.current = phase
+  }, [landmarkColor, layout, phase, reducedMotion])
+
+  useFrame((_, rawDeltaSeconds) => {
+    const transition = transitionRef.current
+    if (!transition || transition.phase !== phase) return
+
+    transition.elapsedSeconds += THREE.MathUtils.clamp(
+      rawDeltaSeconds,
+      0,
+      MAX_DELTA_SECONDS,
+    )
+    const timeProgress =
+      transition.durationSeconds === 0
+        ? 1
+        : THREE.MathUtils.clamp(
+            transition.elapsedSeconds / transition.durationSeconds,
+            0,
+            1,
+          )
+    const easedProgress =
+      timeProgress < 0.5
+        ? 4 * timeProgress * timeProgress * timeProgress
+        : 1 - Math.pow(-2 * timeProgress + 2, 3) / 2
+    const progress = THREE.MathUtils.lerp(
+      transition.fromProgress,
+      transition.toProgress,
+      easedProgress,
+    )
+    applyProgress(progress)
+
+    if (timeProgress < 1) return
+
+    applyProgress(transition.toProgress)
+    transitionRef.current = null
+  })
+
+  const showQrPlane = phase !== 'explore'
+
+  return (
+    <group name="qr-morph-field">
+      <mesh
+        position={[0, 0, 0]}
+        receiveShadow={false}
+        visible={showQrPlane}
+      >
+        <boxGeometry args={[layout.planeSize, 0.06, layout.planeSize]} />
+        <meshBasicMaterial
+          ref={planeMaterialRef}
+          color="#ffffff"
+          transparent
+          opacity={phase === 'scan' ? 1 : 0}
+          depthWrite={false}
+        />
+      </mesh>
+
+      <instancedMesh
+        ref={meshRef}
+        args={[undefined, undefined, layout.points.length]}
+        castShadow={phase === 'explore'}
+        receiveShadow={false}
+        frustumCulled={false}
+      >
+        <boxGeometry
+          args={[
+            layout.moduleSize * 0.9,
+            layout.moduleSize * 0.9,
+            layout.moduleSize * 0.9,
+          ]}
+        />
+        <meshBasicMaterial
+          ref={materialRef}
+          color={landmarkColor}
+          transparent
+          opacity={phase === 'scan' ? 1 : 0}
+          depthWrite={false}
+        />
+      </instancedMesh>
+    </group>
+  )
+}

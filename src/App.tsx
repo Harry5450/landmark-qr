@@ -1,38 +1,109 @@
-import { FormEvent, useMemo, useState } from 'react'
-import { QRCodeSVG } from 'qrcode.react'
+import { FormEvent, useCallback, useMemo, useState } from 'react'
+import { InlineScanLayer } from './components/InlineScanLayer'
+import { LandmarkConceptLayer } from './components/LandmarkConceptLayer'
 import { LandmarkScene } from './components/LandmarkScene'
 import {
   initialLandmarkId,
   landmarks,
   type LandmarkId,
 } from './data/landmarks'
+import { useExperiencePhase } from './hooks/useExperiencePhase'
+import { normalizeDestinationUrl } from './lib/qr'
+import {
+  buildShareUrl,
+  decodeShareHash,
+  DEFAULT_PRESET_ID,
+  SHARE_STATE_VERSION,
+  type ShareStateV1,
+} from './lib/shareState'
 
 const DEFAULT_URL = 'https://example.com'
 
-function normalizeUrl(value: string) {
-  const trimmed = value.trim()
-  if (!trimmed) return DEFAULT_URL
-  if (/^[a-z][a-z\d+.-]*:\/\//i.test(trimmed)) return trimmed
-  return `https://${trimmed}`
+function readInitialShareState(): ShareStateV1 {
+  if (typeof window !== 'undefined') {
+    const decoded = decodeShareHash(window.location.hash)
+    if (decoded.ok) return decoded.value
+  }
+
+  return {
+    v: SHARE_STATE_VERSION,
+    url: DEFAULT_URL,
+    landmarkId: initialLandmarkId,
+    presetId: DEFAULT_PRESET_ID,
+  }
 }
 
 export default function App() {
-  const [draftUrl, setDraftUrl] = useState(DEFAULT_URL)
-  const [encodedUrl, setEncodedUrl] = useState(DEFAULT_URL)
-  const [landmarkId, setLandmarkId] = useState<LandmarkId>(initialLandmarkId)
-  const [scanOpen, setScanOpen] = useState(false)
+  const [initialShareState] = useState(readInitialShareState)
+  const [draftUrl, setDraftUrl] = useState(initialShareState.url)
+  const [encodedUrl, setEncodedUrl] = useState(initialShareState.url)
+  const [landmarkId, setLandmarkId] = useState<LandmarkId>(
+    initialShareState.landmarkId,
+  )
+  const [urlError, setUrlError] = useState('')
+  const [sceneFailed, setSceneFailed] = useState(false)
+  const {
+    phase,
+    reveal,
+    completeReveal,
+    returnToExplore,
+    completeReturn,
+    failToScan,
+    reset,
+  } = useExperiencePhase()
 
   const landmark = useMemo(
     () => landmarks.find((item) => item.id === landmarkId) ?? landmarks[0],
     [landmarkId],
   )
 
+  const shareUrl = useMemo(() => {
+    if (typeof window === 'undefined') return ''
+
+    const result = buildShareUrl(window.location.href, {
+      v: SHARE_STATE_VERSION,
+      url: encodedUrl,
+      landmarkId,
+      presetId: DEFAULT_PRESET_ID,
+    })
+
+    return result.ok ? result.value : window.location.href
+  }, [encodedUrl, landmarkId])
+
   const handleGenerate = (event: FormEvent) => {
     event.preventDefault()
-    const normalized = normalizeUrl(draftUrl)
-    setDraftUrl(normalized)
-    setEncodedUrl(normalized)
-    setScanOpen(false)
+    const result = normalizeDestinationUrl(draftUrl)
+
+    if (!result.ok) {
+      setUrlError(result.error.message)
+      return
+    }
+
+    setDraftUrl(result.value)
+    setEncodedUrl(result.value)
+    setUrlError('')
+    reset()
+  }
+
+  const handleLandmarkChange = (nextLandmarkId: LandmarkId) => {
+    setLandmarkId(nextLandmarkId)
+    setSceneFailed(false)
+    reset()
+  }
+
+  const handleSceneUnavailable = useCallback(() => {
+    setSceneFailed(true)
+    if (phase !== 'explore') failToScan()
+  }, [failToScan, phase])
+
+  const handleReveal = useCallback(() => {
+    if (sceneFailed) failToScan()
+    else reveal()
+  }, [failToScan, reveal, sceneFailed])
+
+  const handleCloseScan = () => {
+    if (sceneFailed) reset()
+    else returnToExplore()
   }
 
   return (
@@ -45,9 +116,8 @@ export default function App() {
             <span>Create a landmark.</span>
           </h1>
           <p className="hero-description">
-            A 3D QR experience where world landmarks rise from a real QR matrix.
-            The decorative scene is separated from Scan Mode so visual styling never
-            compromises readability.
+            A real landmark first. Tap it and the building breaks into modules,
+            turns toward you and becomes a scannable QR in the same scene.
           </p>
         </div>
         <div className="hero-badge">
@@ -64,15 +134,25 @@ export default function App() {
               <input
                 id="url"
                 value={draftUrl}
-                onChange={(event) => setDraftUrl(event.target.value)}
+                onChange={(event) => {
+                  setDraftUrl(event.target.value)
+                  if (urlError) setUrlError('')
+                }}
                 spellCheck={false}
                 inputMode="url"
                 placeholder="https://your-link.com"
+                aria-invalid={Boolean(urlError)}
+                aria-describedby={urlError ? 'url-error' : undefined}
               />
               <button type="submit" className="primary-button">
                 Generate
               </button>
             </div>
+            {urlError && (
+              <p id="url-error" className="form-error" role="alert">
+                {urlError}
+              </p>
+            )}
           </form>
 
           <div className="panel-section">
@@ -93,7 +173,7 @@ export default function App() {
                     type="button"
                     className={`landmark-card ${selected ? 'is-selected' : ''}`}
                     disabled={!item.ready}
-                    onClick={() => item.ready && setLandmarkId(item.id)}
+                    onClick={() => item.ready && handleLandmarkChange(item.id)}
                     style={{ '--accent': item.accent } as React.CSSProperties}
                   >
                     <span className="landmark-emoji">{item.emoji}</span>
@@ -127,16 +207,55 @@ export default function App() {
             <button
               type="button"
               className="scan-button"
-              onClick={() => setScanOpen(true)}
+              onClick={handleReveal}
+              disabled={phase !== 'explore'}
             >
               <span className="scan-icon" aria-hidden="true" />
-              Scan QR
+              {phase === 'explore'
+                ? 'Transform to QR'
+                : phase === 'scan'
+                  ? 'QR revealed'
+                  : phase === 'returning'
+                    ? 'Rebuilding…'
+                    : 'Transforming…'}
             </button>
           </div>
 
-          <div className="scene-frame">
-            <LandmarkScene value={encodedUrl} landmarkId={landmarkId} scanMode={scanOpen} />
-            <div className="scene-tip">Drag to rotate · Pinch to zoom</div>
+          <div className="scene-frame" data-phase={phase}>
+            <LandmarkScene
+              value={encodedUrl}
+              landmarkId={landmarkId}
+              phase={phase}
+              onRevealRequest={handleReveal}
+              onRevealComplete={completeReveal}
+              onReturnComplete={completeReturn}
+              onSceneUnavailable={handleSceneUnavailable}
+            />
+            {landmark.conceptImage && (
+              <LandmarkConceptLayer
+                src={landmark.conceptImage}
+                landmarkName={landmark.name}
+                phase={phase}
+                onTransform={handleReveal}
+              />
+            )}
+            <InlineScanLayer
+              destinationUrl={encodedUrl}
+              landmarkName={landmark.name}
+              shareUrl={shareUrl}
+              downloadFileName={`${landmark.id}-landmark-qr.svg`}
+              onReturn={handleCloseScan}
+              visible={phase === 'scan'}
+            />
+            {phase !== 'scan' && (
+              <div className="scene-tip">
+                {phase === 'explore'
+                  ? 'Tap the building to transform · Drag to rotate · Pinch to zoom'
+                  : phase === 'returning'
+                    ? 'Rebuilding the landmark…'
+                    : 'Building modules are becoming your QR…'}
+              </div>
+            )}
           </div>
 
           <div className="preview-footer">
@@ -153,49 +272,6 @@ export default function App() {
         </section>
       </section>
 
-      {scanOpen && (
-        <div className="scan-overlay" role="dialog" aria-modal="true" aria-label="Scan QR">
-          <button
-            type="button"
-            className="scan-backdrop"
-            aria-label="Close scan mode"
-            onClick={() => setScanOpen(false)}
-          />
-          <section className="scan-card">
-            <div className="scan-card-header">
-              <div>
-                <p>SCAN-SAFE MODE</p>
-                <h2>{landmark.name}</h2>
-              </div>
-              <button
-                type="button"
-                className="close-button"
-                onClick={() => setScanOpen(false)}
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="qr-paper">
-              <QRCodeSVG
-                value={encodedUrl}
-                size={292}
-                level="H"
-                bgColor="#ffffff"
-                fgColor="#0b1020"
-                includeMargin
-              />
-            </div>
-
-            <p className="scan-hint">
-              Decorative 3D content is removed here by design. This is the canonical QR
-              for scanning and validation.
-            </p>
-            <div className="scan-url">{encodedUrl}</div>
-          </section>
-        </div>
-      )}
     </main>
   )
 }

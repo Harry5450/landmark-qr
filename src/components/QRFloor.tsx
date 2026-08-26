@@ -1,6 +1,6 @@
 import { useLayoutEffect, useMemo, useRef } from 'react'
-import QRCode from 'qrcode'
 import * as THREE from 'three'
+import { createQrMatrix } from '../lib/qr'
 
 type QRFloorProps = {
   value: string
@@ -10,19 +10,7 @@ type QRFloorProps = {
 export function QRFloor({ value, scanSafe = false }: QRFloorProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null)
 
-  const matrix = useMemo(() => {
-    const qr = QRCode.create(value, { errorCorrectionLevel: 'H' })
-    const size = qr.modules.size
-    const cells: Array<[number, number]> = []
-
-    for (let row = 0; row < size; row += 1) {
-      for (let col = 0; col < size; col += 1) {
-        if (qr.modules.get(row, col)) cells.push([col, row])
-      }
-    }
-
-    return { cells, size }
-  }, [value])
+  const matrix = useMemo(() => createQrMatrix(value), [value])
 
   const unit = Math.min(0.18, 7.2 / (matrix.size + 8))
   const baseSize = (matrix.size + 8) * unit
@@ -34,7 +22,7 @@ export function QRFloor({ value, scanSafe = false }: QRFloorProps) {
     const dummy = new THREE.Object3D()
     const center = (matrix.size - 1) / 2
 
-    matrix.cells.forEach(([col, row], index) => {
+    matrix.darkCells.forEach(([col, row], index) => {
       dummy.position.set((col - center) * unit, 0.09, (row - center) * unit)
       dummy.rotation.set(0, 0, 0)
       dummy.scale.set(1, 1, 1)
@@ -58,7 +46,7 @@ export function QRFloor({ value, scanSafe = false }: QRFloorProps) {
 
       <instancedMesh
         ref={meshRef}
-        args={[undefined, undefined, matrix.cells.length]}
+        args={[undefined, undefined, matrix.darkCells.length]}
         castShadow={!scanSafe}
         receiveShadow={!scanSafe}
         frustumCulled={false}
