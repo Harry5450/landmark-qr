@@ -33,6 +33,8 @@ export type LandmarkCamera = {
   targetY: number
 }
 
+export type LandmarkQrMark = 'taipei-101'
+
 export type Landmark = {
   id: LandmarkId
   name: string
@@ -45,6 +47,7 @@ export type Landmark = {
   transform: LandmarkTransform
   camera: LandmarkCamera
   conceptImage?: string
+  qrMark?: LandmarkQrMark
 }
 
 const defaultTransform: LandmarkTransform = {
@@ -89,6 +92,7 @@ export const landmarks: Landmark[] = [
       targetY: 2.5,
     },
     conceptImage: referenceAssetPath('taipei-101-concept-transparent.png'),
+    qrMark: 'taipei-101',
   },
   {
     id: 'eiffel-tower',

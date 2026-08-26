@@ -172,7 +172,7 @@ export function createMorphLayout({
       matrix.darkCells.length,
       random,
     )
-    const scaleNoise = 0.82 + random() * 0.3
+    const scaleNoise = 0.48 + random() * 0.22
 
     return {
       cell,
@@ -182,7 +182,7 @@ export function createMorphLayout({
         MORPH_TARGET_Y,
         (row - center) * resolvedModuleSize,
       ],
-      startScale: [scaleNoise, 0.95 + random() * 0.5, scaleNoise],
+      startScale: [scaleNoise, 0.58 + random() * 0.28, scaleNoise],
       targetScale: [1, 0.42, 1],
       delay: random() * MORPH_MAX_DELAY,
     }

@@ -65,6 +65,7 @@ export function QRMorphField({
   phase,
   reducedMotion = false,
 }: QRMorphFieldProps) {
+  const groupRef = useRef<THREE.Group>(null)
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const materialRef = useRef<THREE.MeshBasicMaterial>(null)
   const planeMaterialRef = useRef<THREE.MeshBasicMaterial>(null)
@@ -88,23 +89,40 @@ export function QRMorphField({
     if (!mesh) return
 
     const clampedProgress = THREE.MathUtils.clamp(progress, 0, 1)
+    const morphProgress = THREE.MathUtils.smoothstep(clampedProgress, 0.18, 1)
     progressRef.current = clampedProgress
-    writeInstances(mesh, layout, clampedProgress)
+    writeInstances(mesh, layout, morphProgress)
+    if (groupRef.current) {
+      const fieldScale = THREE.MathUtils.lerp(
+        0.62,
+        1,
+        THREE.MathUtils.smoothstep(clampedProgress, 0.18, 0.96),
+      )
+      groupRef.current.scale.setScalar(fieldScale)
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(
+        0.34,
+        0,
+        THREE.MathUtils.smoothstep(clampedProgress, 0.08, 0.82),
+      )
+    }
     if (materialRef.current) {
       materialRef.current.color
         .copy(landmarkColor)
-        .lerp(QR_COLOR, clampedProgress)
+        .lerp(
+          QR_COLOR,
+          THREE.MathUtils.smoothstep(clampedProgress, 0.28, 0.84),
+        )
       materialRef.current.opacity = THREE.MathUtils.smoothstep(
         clampedProgress,
-        0.02,
-        0.22,
+        0.01,
+        0.11,
       )
     }
     if (planeMaterialRef.current) {
       planeMaterialRef.current.opacity = THREE.MathUtils.smoothstep(
         clampedProgress,
-        0.15,
-        0.8,
+        0.84,
+        0.98,
       )
     }
   }
@@ -178,7 +196,12 @@ export function QRMorphField({
   const showQrPlane = phase !== 'explore'
 
   return (
-    <group name="qr-morph-field">
+    <group
+      ref={groupRef}
+      name="qr-morph-field"
+      rotation={[0, 0.34, 0]}
+      scale={0.62}
+    >
       <mesh
         position={[0, 0, 0]}
         receiveShadow={false}

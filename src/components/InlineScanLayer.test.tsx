@@ -10,17 +10,27 @@ type MockQrProps = SVGProps<SVGSVGElement> & {
   level: string
   marginSize: number
   title?: string
+  imageSettings?: {
+    src: string
+    width: number
+    height: number
+    excavate: boolean
+  }
 }
 
 vi.mock('qrcode.react', () => ({
   QRCodeSVG: forwardRef<SVGSVGElement, MockQrProps>(
-    ({ value, level, marginSize, title, ...props }, ref) => (
+    ({ value, level, marginSize, title, imageSettings, ...props }, ref) => (
       <svg
         ref={ref}
         data-value={value}
         data-level={level}
         data-margin-size={marginSize}
         aria-label={title}
+        data-image-src={imageSettings?.src}
+        data-image-width={imageSettings?.width}
+        data-image-height={imageSettings?.height}
+        data-image-excavate={imageSettings?.excavate}
         {...props}
       />
     ),
@@ -37,6 +47,7 @@ function renderLayer(onReturn = vi.fn(), visible = true) {
       <InlineScanLayer
         destinationUrl={destinationUrl}
         landmarkName="Taipei 101"
+        qrMark="taipei-101"
         shareUrl={shareUrl}
         downloadFileName="taipei-101.svg"
         onReturn={onReturn}
@@ -64,6 +75,8 @@ describe('InlineScanLayer', () => {
       'data-margin-size',
       String(QR_QUIET_ZONE_MODULES),
     )
+    expect(qr).toHaveAttribute('data-image-excavate', 'true')
+    expect(qr.getAttribute('data-image-src')).toContain('data:image/svg+xml')
   })
 
   it('returns from the clickable QR, Return button, and Escape', async () => {

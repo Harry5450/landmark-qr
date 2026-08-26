@@ -4,11 +4,14 @@ import {
   QR_ERROR_CORRECTION_LEVEL,
   QR_QUIET_ZONE_MODULES,
 } from '../lib/qr'
+import type { LandmarkQrMark } from '../data/landmarks'
+import { getLandmarkQrImageSettings } from '../lib/landmarkQrMark'
 import { ShareActions } from './ShareActions'
 
 type InlineScanLayerProps = {
   destinationUrl: string
   landmarkName: string
+  qrMark?: LandmarkQrMark
   shareUrl: string
   downloadFileName?: string
   onReturn: () => void
@@ -38,6 +41,7 @@ function downloadSvg(svg: SVGSVGElement, fileName: string) {
 export function InlineScanLayer({
   destinationUrl,
   landmarkName,
+  qrMark,
   shareUrl,
   downloadFileName = 'landmark-qr.svg',
   onReturn,
@@ -49,6 +53,7 @@ export function InlineScanLayer({
   const onReturnRef = useRef(onReturn)
 
   onReturnRef.current = onReturn
+  const imageSettings = getLandmarkQrImageSettings(qrMark)
 
   useEffect(() => {
     if (!visible) return
@@ -108,13 +113,14 @@ export function InlineScanLayer({
             marginSize={QR_QUIET_ZONE_MODULES}
             bgColor="#ffffff"
             fgColor="#0b1020"
+            imageSettings={imageSettings}
             title={`QR code for ${destinationUrl}`}
           />
         </button>
 
         <p className="inline-scan-layer__hint">
-          Scan to open the destination. Select the QR or press Escape to rebuild the
-          landmark.
+          The landmark is embedded in the center while the finder patterns stay
+          untouched. Select the QR or press Escape to rebuild it.
         </p>
 
         <ShareActions

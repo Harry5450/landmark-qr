@@ -97,6 +97,9 @@ describe('createMorphLayout', () => {
     ).toBeGreaterThan(
       upper.reduce((sum, point) => sum + radialExtent(point), 0) / upper.length,
     )
+    expect(Math.max(...layout.points.map((point) => point.startScale[0]))).toBeLessThan(
+      0.72,
+    )
   })
 })
 

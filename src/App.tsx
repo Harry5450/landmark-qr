@@ -48,7 +48,6 @@ export default function App() {
     completeReveal,
     returnToExplore,
     completeReturn,
-    failToScan,
     reset,
   } = useExperiencePhase()
 
@@ -93,17 +92,14 @@ export default function App() {
 
   const handleSceneUnavailable = useCallback(() => {
     setSceneFailed(true)
-    if (phase !== 'explore') failToScan()
-  }, [failToScan, phase])
+  }, [])
 
   const handleReveal = useCallback(() => {
-    if (sceneFailed) failToScan()
-    else reveal()
-  }, [failToScan, reveal, sceneFailed])
+    reveal()
+  }, [reveal])
 
   const handleCloseScan = () => {
-    if (sceneFailed) reset()
-    else returnToExplore()
+    returnToExplore()
   }
 
   return (
@@ -226,6 +222,7 @@ export default function App() {
               value={encodedUrl}
               landmarkId={landmarkId}
               phase={phase}
+              reducedMotion={false}
               onRevealRequest={handleReveal}
               onRevealComplete={completeReveal}
               onReturnComplete={completeReturn}
@@ -242,6 +239,7 @@ export default function App() {
             <InlineScanLayer
               destinationUrl={encodedUrl}
               landmarkName={landmark.name}
+              qrMark={landmark.qrMark}
               shareUrl={shareUrl}
               downloadFileName={`${landmark.id}-landmark-qr.svg`}
               onReturn={handleCloseScan}
@@ -250,7 +248,9 @@ export default function App() {
             {phase !== 'scan' && (
               <div className="scene-tip">
                 {phase === 'explore'
-                  ? 'Tap the building to transform · Drag to rotate · Pinch to zoom'
+                  ? sceneFailed
+                    ? '2.5D preview active · Tap the building to transform'
+                    : 'Tap the building to transform · Drag to rotate · Pinch to zoom'
                   : phase === 'returning'
                     ? 'Rebuilding the landmark…'
                     : 'Building modules are becoming your QR…'}

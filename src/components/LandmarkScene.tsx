@@ -13,7 +13,11 @@ import { GLBLandmark } from './GLBLandmark'
 import { LandmarkReveal } from './LandmarkReveal'
 import { LandmarkModel } from './ProceduralLandmarks'
 import { QRMorphField } from './QRMorphField'
-import { SceneCameraController } from './SceneCameraController'
+import {
+  REVEAL_DURATION_SECONDS,
+  RETURN_DURATION_SECONDS,
+  SceneCameraController,
+} from './SceneCameraController'
 
 type LandmarkSceneProps = {
   value: string
@@ -32,12 +36,7 @@ type SceneErrorBoundaryState = {
   hasError: boolean
 }
 
-function SceneUnavailable({ onUnavailable }: { onUnavailable?: () => void }) {
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => onUnavailable?.(), 1800)
-    return () => window.clearTimeout(timeoutId)
-  }, [onUnavailable])
-
+function SceneUnavailable() {
   return (
     <div className="scene-status is-error" role="status">
       3D preview unavailable. Scan Mode remains available.
@@ -62,7 +61,7 @@ class SceneErrorBoundary extends Component<
 
   render() {
     if (this.state.hasError) {
-      return <SceneUnavailable onUnavailable={this.props.onError} />
+      return <SceneUnavailable />
     }
 
     return this.props.children
@@ -202,6 +201,23 @@ export function LandmarkScene({
   const landmark = landmarks.find((item) => item.id === landmarkId) ?? landmarks[0]
   const activePhase = scanMode ? 'scan' : phase
 
+  useEffect(() => {
+    if (activePhase !== 'revealing' && activePhase !== 'returning') return
+
+    const durationSeconds =
+      activePhase === 'revealing'
+        ? REVEAL_DURATION_SECONDS
+        : RETURN_DURATION_SECONDS
+    const complete =
+      activePhase === 'revealing' ? onRevealComplete : onReturnComplete
+    const timeoutId = window.setTimeout(
+      () => complete?.(),
+      durationSeconds * 1000 + 80,
+    )
+
+    return () => window.clearTimeout(timeoutId)
+  }, [activePhase, onRevealComplete, onReturnComplete])
+
   return (
     <SceneErrorBoundary key={landmark.id} onError={onSceneUnavailable}>
       <Canvas
@@ -214,7 +230,7 @@ export function LandmarkScene({
           far: 100,
         }}
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-        fallback={<SceneUnavailable onUnavailable={onSceneUnavailable} />}
+        fallback={<SceneUnavailable />}
       >
         <DecorativeScene
           value={value}

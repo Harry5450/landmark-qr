@@ -9,9 +9,10 @@ import {
   QR_ERROR_CORRECTION_LEVEL,
   QR_QUIET_ZONE_MODULES,
 } from '../lib/qr'
+import { getLandmarkQrImageSettings } from '../lib/landmarkQrMark'
 
 describe('ScanSurface QR read-back', () => {
-  it('decodes the canonical rendered SVG to the exact destination', () => {
+  it('decodes the Taipei 101 branded SVG to the exact destination', () => {
     const destinationUrl =
       'https://example.org/landmark?theme=taipei-101&message=%E5%8F%B0%E5%8C%97'
 
@@ -23,6 +24,7 @@ describe('ScanSurface QR read-back', () => {
         marginSize={QR_QUIET_ZONE_MODULES}
         bgColor="#ffffff"
         fgColor="#0b1020"
+        imageSettings={getLandmarkQrImageSettings('taipei-101')}
       />,
     )
 

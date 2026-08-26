@@ -118,7 +118,7 @@ describe('App integration', () => {
     expect(screen.getByRole('heading', { name: 'Eiffel Tower' })).toBeVisible()
   })
 
-  it('keeps the landmark visible before offering scan fallback without WebGL', async () => {
+  it('keeps the authored transition before scan fallback without WebGL', async () => {
     const user = userEvent.setup()
     render(<App />)
 
@@ -132,6 +132,15 @@ describe('App integration', () => {
     )
 
     await user.click(screen.getByRole('button', { name: 'Transform to QR' }))
+    expect(screen.getByTestId('landmark-scene')).toHaveAttribute(
+      'data-phase',
+      'revealing',
+    )
+    expect(
+      screen.queryByRole('region', { name: 'Mock inline scan layer' }),
+    ).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: 'Finish reveal' }))
     expect(
       screen.getByRole('region', { name: 'Mock inline scan layer' }),
     ).toBeVisible()

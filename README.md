@@ -39,9 +39,12 @@ so visual styling never compromises QR readability.
 The Taipei 101 opening frame currently uses the approved concept render as a
 true-alpha PNG cutout in `public/assets/references/`. This is a deliberate 2.5D
 bridge: it gives the opening frame the requested architectural fidelity while the
-production GLB is still unavailable. Clicking the building fades the cutout into
-a deterministic Three.js instanced-module field, moves the camera to a top-down
-pose, and finishes on the canonical inline QR.
+production GLB is still unavailable. The cutout runs a continuous turntable
+motion and also responds to horizontal drag. Clicking the building fades it into
+a deterministic, tiered Taipei 101 instanced-module silhouette, then moves those
+same modules into the QR plane. The final H-level QR excavates only a bounded
+center area for a Taipei 101 mark; its finder patterns and four-module quiet zone
+remain untouched and are covered by automated decode read-back.
 
 Keep both files during asset review:
 
