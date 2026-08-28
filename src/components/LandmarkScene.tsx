@@ -13,6 +13,7 @@ import { GLBLandmark } from './GLBLandmark'
 import { LandmarkReveal } from './LandmarkReveal'
 import { LandmarkModel } from './ProceduralLandmarks'
 import { QRMorphField } from './QRMorphField'
+import { QrVoxelField } from './QrVoxelField'
 import {
   REVEAL_DURATION_SECONDS,
   RETURN_DURATION_SECONDS,
@@ -130,25 +131,36 @@ function DecorativeScene({
       />
       <directionalLight position={[-4, 3, -2]} intensity={0.65} color="#91b8ff" />
 
-      {!landmark.conceptImage && (
-        <LandmarkReveal
+      {landmark.voxelQr ? (
+        <QrVoxelField
+          value={value}
+          landmarkId={landmark.id}
           phase={phase}
-          subjectRef={subjectRef}
           reducedMotion={reducedMotion}
           onRevealRequest={onRevealRequest}
-        >
-          <LandmarkAsset landmark={landmark} />
-        </LandmarkReveal>
+        />
+      ) : (
+        <>
+          {!landmark.conceptImage && (
+            <LandmarkReveal
+              phase={phase}
+              subjectRef={subjectRef}
+              reducedMotion={reducedMotion}
+              onRevealRequest={onRevealRequest}
+            >
+              <LandmarkAsset landmark={landmark} />
+            </LandmarkReveal>
+          )}
+          <QRMorphField
+            value={value}
+            landmarkId={landmark.id}
+            phase={phase}
+            reducedMotion={reducedMotion}
+          />
+        </>
       )}
 
-      <QRMorphField
-        value={value}
-        landmarkId={landmark.id}
-        phase={phase}
-        reducedMotion={reducedMotion}
-      />
-
-      {phase !== 'scan' && !landmark.conceptImage && (
+      {!landmark.voxelQr && phase !== 'scan' && !landmark.conceptImage && (
         <ContactShadows
           position={[0, -0.13, 0]}
           opacity={0.32}

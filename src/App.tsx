@@ -228,7 +228,7 @@ export default function App() {
               onReturnComplete={completeReturn}
               onSceneUnavailable={handleSceneUnavailable}
             />
-            {landmark.conceptImage && (
+            {landmark.conceptImage && !landmark.voxelQr && (
               <LandmarkConceptLayer
                 src={landmark.conceptImage}
                 landmarkName={landmark.name}
@@ -275,3 +275,4 @@ export default function App() {
     </main>
   )
 }
+

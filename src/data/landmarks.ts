@@ -48,6 +48,7 @@ export type Landmark = {
   camera: LandmarkCamera
   conceptImage?: string
   qrMark?: LandmarkQrMark
+  voxelQr?: boolean
 }
 
 const defaultTransform: LandmarkTransform = {
@@ -93,6 +94,7 @@ export const landmarks: Landmark[] = [
     },
     conceptImage: referenceAssetPath('taipei-101-concept-transparent.png'),
     qrMark: 'taipei-101',
+    voxelQr: true,
   },
   {
     id: 'eiffel-tower',
@@ -205,3 +207,5 @@ export const landmarks: Landmark[] = [
 ]
 
 export const initialLandmarkId: LandmarkId = 'taipei-101'
+
+
