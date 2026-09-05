@@ -49,6 +49,7 @@ export type Landmark = {
   conceptImage?: string
   qrMark?: LandmarkQrMark
   voxelQr?: boolean
+  plazaQr?: boolean
 }
 
 const defaultTransform: LandmarkTransform = {
@@ -62,14 +63,6 @@ const defaultCamera: LandmarkCamera = {
   targetY: 1.5,
 }
 
-function modelAssetPath(fileName: string) {
-  return `${import.meta.env.BASE_URL}models/${fileName}`
-}
-
-function referenceAssetPath(fileName: string) {
-  return `${import.meta.env.BASE_URL}assets/references/${fileName}`
-}
-
 export const landmarks: Landmark[] = [
   {
     id: 'taipei-101',
@@ -79,22 +72,17 @@ export const landmarks: Landmark[] = [
     emoji: '🇹🇼',
     ready: true,
     accent: '#20c7b7',
-    source: {
-      type: 'glb',
-      src: modelAssetPath('taipei-101.glb'),
-      fallback: true,
-    },
+    source: { type: 'procedural' },
     transform: {
       ...defaultTransform,
       scale: 1,
     },
     camera: {
-      distance: 8,
-      targetY: 2.5,
+      distance: 14.6,
+      targetY: 1.9,
     },
-    conceptImage: referenceAssetPath('taipei-101-concept-transparent.png'),
     qrMark: 'taipei-101',
-    voxelQr: true,
+    plazaQr: true,
   },
   {
     id: 'eiffel-tower',

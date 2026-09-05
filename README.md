@@ -84,12 +84,11 @@ removed.
 5. Verify the build, missing-asset behavior, and Scan Mode before adding another
    production asset.
 
-The Taipei 101 pipeline is the first production path. Its repository path is
-`public/models/taipei-101.glb`; the runtime URL is resolved through Vite's
-`BASE_URL` so it works under the GitHub Pages `/landmark-qr/` prefix. The
-repository intentionally does not include a fake model. Until an approved asset
-is supplied, a missing or invalid GLB falls back to the existing procedural
-Taipei 101 prototype.
+Taipei 101 currently uses the authored procedural model. No approved GLB is
+bundled, so the active registry avoids requesting a nonexistent binary. The
+existing GLB loader remains available for an approved asset at
+`public/models/taipei-101.glb`; configure its runtime URL with Vite's `BASE_URL`
+to preserve GitHub Pages subpath support.
 
 ## File Naming
 
@@ -157,3 +156,23 @@ The first MVP implements three procedural landmark placeholders. They are intent
 2. Replace placeholders with optimized GLB assets based on the approved visual concept series.
 3. Add automatic scan validation and mobile performance budgets.
 4. Expand from 3 implemented landmarks to all 10 landmark themes.
+
+## Architecture collection preview
+
+Taipei 101 now uses the shared `plazaQr` scene path. The building and perimeter
+garden collapse while the plaza tiles flatten into a QR. `QrPlaza` and
+`CanonicalQr` both use `createQrMatrix`; the Taipei 101 scan output adds a
+small, excavated landmark mark in the center and keeps finder patterns untouched.
+`scanLayout` defines the world extent and display size used by the camera and SVG,
+so the planar endpoint hands off at the same screen position. The WebGL canvas is
+hidden only in the final scan state; return restores it for the reverse animation.
+The other two landmarks retain their existing procedural models and morph paths.
+
+The default view no longer auto-rotates. Drag/touch orbit remains available.
+Upcoming themes are collapsed, the hero is shorter, and mobile uses a fixed scene
+height with a responsive camera. QR download exports the same visible SVG.
+
+Validation: `npm test` and `npm run build`. Additional decoding tests rasterize the
+active canonical SVG at display sizes and check exact destinations, including
+Unicode and longer URLs. Browser checks do not replace physical phone camera or
+mobile GPU performance testing. Source changes are not automatically published.

@@ -1,11 +1,6 @@
 import { useEffect, useId, useRef } from 'react'
-import { QRCodeSVG } from 'qrcode.react'
-import {
-  QR_ERROR_CORRECTION_LEVEL,
-  QR_QUIET_ZONE_MODULES,
-} from '../lib/qr'
+import { CanonicalQr } from './CanonicalQr'
 import type { LandmarkQrMark } from '../data/landmarks'
-import { getLandmarkQrImageSettings } from '../lib/landmarkQrMark'
 import { ShareActions } from './ShareActions'
 
 type InlineScanLayerProps = {
@@ -53,13 +48,12 @@ export function InlineScanLayer({
   const onReturnRef = useRef(onReturn)
 
   onReturnRef.current = onReturn
-  const imageSettings = getLandmarkQrImageSettings(qrMark)
 
   useEffect(() => {
     if (!visible) return
 
     const previouslyFocused = document.activeElement
-    returnButtonRef.current?.focus()
+    returnButtonRef.current?.focus({ preventScroll: true })
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -95,7 +89,7 @@ export function InlineScanLayer({
       data-testid="inline-scan-layer"
     >
       <div className="inline-scan-layer__content">
-        <p className="inline-scan-layer__eyebrow">SCAN-SAFE REVEAL</p>
+        <p className="inline-scan-layer__eyebrow">READY TO SCAN</p>
         <h2 id={titleId}>{landmarkName} has become your QR</h2>
 
         <button
@@ -105,22 +99,11 @@ export function InlineScanLayer({
           aria-label="Return to 3D from QR code"
           onClick={onReturn}
         >
-          <QRCodeSVG
-            ref={qrRef}
-            value={destinationUrl}
-            size={292}
-            level={QR_ERROR_CORRECTION_LEVEL}
-            marginSize={QR_QUIET_ZONE_MODULES}
-            bgColor="#ffffff"
-            fgColor="#0b1020"
-            imageSettings={imageSettings}
-            title={`QR code for ${destinationUrl}`}
-          />
+          <CanonicalQr ref={qrRef} value={destinationUrl} mark={qrMark} />
         </button>
 
         <p className="inline-scan-layer__hint">
-          The landmark is embedded in the center while the finder patterns stay
-          untouched. Select the QR or press Escape to rebuild it.
+          The landmark stays at the heart of your code. Tap it or press Escape to return.
         </p>
 
         <ShareActions

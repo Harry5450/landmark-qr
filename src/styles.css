@@ -51,7 +51,7 @@ input:focus-visible {
 .app-shell {
   width: min(1500px, calc(100% - 40px));
   margin: 0 auto;
-  padding: 56px 0 64px;
+  padding: 24px 0 32px;
 }
 
 .hero-copy {
@@ -59,7 +59,7 @@ input:focus-visible {
   align-items: end;
   justify-content: space-between;
   gap: 32px;
-  margin-bottom: 34px;
+  margin-bottom: 22px;
 }
 
 .eyebrow,
@@ -75,20 +75,21 @@ input:focus-visible {
 .hero-copy h1 {
   margin: 0;
   max-width: 820px;
-  font-size: clamp(2.6rem, 6vw, 5.6rem);
+  font-size: clamp(2rem, 3vw, 3.2rem);
   line-height: 0.94;
   letter-spacing: -0.055em;
 }
 
 .hero-copy h1 span {
-  display: block;
+  display: inline;
+  margin-left: 0.2em;
   color: #94a5c5;
   font-weight: 500;
 }
 
 .hero-description {
   max-width: 720px;
-  margin: 24px 0 0;
+  margin: 12px 0 0;
   color: #9ba8c0;
   font-size: clamp(0.98rem, 1.6vw, 1.08rem);
   line-height: 1.7;
@@ -120,7 +121,7 @@ input:focus-visible {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(330px, 0.78fr) minmax(0, 1.5fr);
+  grid-template-columns: 310px minmax(0, 1fr);
   gap: 18px;
   align-items: stretch;
 }
@@ -335,7 +336,7 @@ input:focus-visible {
 .preview-panel {
   display: flex;
   flex-direction: column;
-  min-height: 760px;
+  min-height: 0;
 }
 
 .preview-toolbar {
@@ -375,8 +376,9 @@ input:focus-visible {
 
 .scene-frame {
   position: relative;
-  min-height: 590px;
-  flex: 1;
+  height: clamp(500px, 60vh, 600px);
+  min-height: 0;
+  flex: none;
   margin: 0 14px;
   overflow: hidden;
   border: 1px solid rgba(156, 182, 222, 0.08);
@@ -395,7 +397,7 @@ input:focus-visible {
   display: block;
   width: 100% !important;
   height: 100% !important;
-  min-height: 590px;
+  min-height: 0;
 }
 
 .landmark-concept-layer {
@@ -525,71 +527,37 @@ input:focus-visible {
   pointer-events: none;
 }
 
+.scene-frame[data-phase="scan"] canvas { visibility: hidden; }
+
 .inline-scan-layer {
   position: absolute;
   inset: 0;
   z-index: 4;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  overflow-y: auto;
-  background:
-    radial-gradient(circle at 50% 38%, rgba(242, 248, 242, 0.18), transparent 24rem),
-    linear-gradient(180deg, rgba(7, 13, 23, 0.26), rgba(7, 13, 23, 0.74));
-  backdrop-filter: blur(3px);
-  animation: scan-layer-in 260ms ease-out both;
+  color: var(--text);
+  --qr-size: 300px;
 }
-
-.inline-scan-layer__content {
-  width: min(430px, 100%);
-  padding: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 22px;
-  background: rgba(12, 20, 34, 0.88);
-  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
-  text-align: center;
-}
-
-.inline-scan-layer__eyebrow {
-  margin: 0 0 6px;
-  color: #64ded2;
-  font-size: 0.65rem;
-  font-weight: 900;
-  letter-spacing: 0.16em;
-}
-
-.inline-scan-layer h2 {
-  margin: 0 0 14px;
-  color: #edf4ff;
-  font-size: 1.08rem;
-  letter-spacing: -0.02em;
-}
-
+.scene-frame .inline-scan-layer { --qr-size: inherit; }
+.inline-scan-layer__content { display: contents; text-align: center; }
+.inline-scan-layer__eyebrow { position: absolute; top: 14px; width: 100%; margin: 0; color: #64ded2; font-size: 10px; letter-spacing: .18em; }
+.inline-scan-layer h2 { position: absolute; top: 34px; width: 100%; margin: 0; font-size: 15px; font-weight: 500; }
 .inline-scan-layer__qr {
-  display: grid;
-  width: min(312px, 100%);
-  margin: 0 auto;
-  padding: 10px;
-  place-items: center;
-  border: 0;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.26);
-  cursor: pointer;
+  position: absolute;
+  left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: var(--qr-size, 300px); height: var(--qr-size, 300px);
+  display: block; border: 0; padding: 0; margin: 0;
+  background: #fff; cursor: pointer; border-radius: 0;
 }
-
-.inline-scan-layer__qr svg {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.inline-scan-layer__hint {
-  margin: 12px 0 0;
-  color: #8392aa;
-  font-size: 0.72rem;
-  line-height: 1.5;
-}
+.inline-scan-layer__qr svg { display: block; width: 100%; height: 100%; }
+.inline-scan-layer__hint { position: absolute; top: 57px; width: 100%; margin: 0; color: #8392aa; font-size: 11px; }
+.inline-scan-layer .share-actions { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: min(390px, calc(100% - 32px)); gap: 6px; margin: 0; }
+.inline-scan-layer .share-actions__primary { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.inline-scan-layer .share-action-button { min-height: 34px; padding: 0 5px; }
+.inline-scan-layer .share-action-button.is-return { min-height: 30px; }
+.inline-scan-layer .share-actions__hint { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.inline-scan-layer .share-actions__status { position: absolute; bottom: -17px; width: 100%; font-size: 10px; }
+.upcoming-themes { margin-top: 16px; color: #8392aa; font-size: 12px; }
+.upcoming-themes summary { cursor: pointer; padding: 10px 0; }
+.upcoming-themes .landmark-card { margin-top: 5px; display: block; }
 
 @keyframes scan-layer-in {
   from {
@@ -839,7 +807,7 @@ input:focus-visible {
 
   .preview-panel {
     order: 1;
-    min-height: 660px;
+    min-height: 0;
   }
 
   .landmark-grid {
@@ -850,7 +818,7 @@ input:focus-visible {
 @media (max-width: 640px) {
   .app-shell {
     width: min(100% - 18px, 600px);
-    padding: 28px 0 34px;
+    padding: 16px 0 24px;
   }
 
   .hero-copy {
@@ -858,7 +826,7 @@ input:focus-visible {
   }
 
   .hero-copy h1 {
-    font-size: clamp(2.5rem, 15vw, 4rem);
+    font-size: clamp(1.8rem, 8vw, 2.5rem);
   }
 
   .control-panel,
@@ -883,7 +851,7 @@ input:focus-visible {
   }
 
   .preview-panel {
-    min-height: 570px;
+    min-height: 0;
   }
 
   .preview-toolbar {
@@ -896,26 +864,18 @@ input:focus-visible {
 
   .scene-frame,
   .scene-frame canvas {
-    min-height: 430px;
+    min-height: 0;
   }
 
   .scene-frame {
     margin: 0 8px;
   }
 
-  .inline-scan-layer {
-    align-items: start;
-    padding: 10px;
-  }
-
-  .inline-scan-layer__content {
-    padding: 13px;
-    border-radius: 16px;
-  }
-
-  .inline-scan-layer__qr {
-    width: min(270px, 100%);
-  }
+  .scene-frame { height: 500px; }
+  .hero-copy { gap: 12px; }
+  .hero-description { font-size: 13px; }
+  .hero-badge { display: none; }
+  .scene-tip { white-space: normal; width: calc(100% - 24px); text-align: center; font-size: 10px; }
 
   .preview-footer {
     align-items: stretch;

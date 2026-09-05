@@ -37,9 +37,8 @@ export const VOXEL_GROUND_HEIGHT = 0.06
 type TowerTier = { halfWidth: number; height: number }
 
 /**
- * Taipei 101 silhouette bands, tested outermost-first.
- * A cell falls into the widest band whose half-width contains it, so the
- * height naturally steps up toward the center (tiered tower profile).
+ * Taipei 101 silhouette bands, stored widest-first and sampled narrowest-first.
+ * The center must use the tallest containing tier rather than the low podium.
  */
 const TAIPEI_101_TIERS: readonly TowerTier[] = [
   { halfWidth: 0.52, height: 0.55 },
@@ -56,7 +55,7 @@ const TAIPEI_101_TIERS: readonly TowerTier[] = [
 ]
 
 function taipei101ExploreHeight(nx: number, nz: number): number {
-  for (const tier of TAIPEI_101_TIERS) {
+  for (const tier of [...TAIPEI_101_TIERS].reverse()) {
     if (Math.abs(nx) < tier.halfWidth && Math.abs(nz) < tier.halfWidth) {
       return tier.height
     }

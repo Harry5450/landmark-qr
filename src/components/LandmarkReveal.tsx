@@ -3,7 +3,6 @@ import { useLayoutEffect, useRef, type ReactNode, type RefObject } from 'react'
 import * as THREE from 'three'
 import type { ExperiencePhase } from '../hooks/useExperiencePhase'
 import {
-  MAX_TRANSITION_DELTA_SECONDS,
   REVEAL_DURATION_SECONDS,
   RETURN_DURATION_SECONDS,
   sampleRevealTimeline,
@@ -34,7 +33,7 @@ export function LandmarkReveal({
   phase,
   subjectRef,
   reducedMotion,
-  recedeDistance = 2.6,
+  recedeDistance = 0,
   onRevealRequest,
 }: LandmarkRevealProps) {
   const systemReducedMotion = useReducedMotionPreference()
@@ -45,7 +44,7 @@ export function LandmarkReveal({
 
   const recessedPosition = () =>
     homePositionRef.current.clone().add(new THREE.Vector3(0, -recedeDistance, 0))
-  const recessedScale = () => homeScaleRef.current.clone().multiplyScalar(0.72)
+  const recessedScale = () => new THREE.Vector3(0.92, 0.001, 0.92)
 
   useLayoutEffect(() => {
     const subject = subjectRef.current
@@ -117,7 +116,7 @@ export function LandmarkReveal({
     const deltaSeconds = THREE.MathUtils.clamp(
       rawDeltaSeconds,
       0,
-      MAX_TRANSITION_DELTA_SECONDS,
+      Number.POSITIVE_INFINITY,
     )
     transition.elapsedSeconds += deltaSeconds
     const progress =

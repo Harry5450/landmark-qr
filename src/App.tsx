@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useMemo, useState } from 'react'
+import { FormEvent, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { InlineScanLayer } from './components/InlineScanLayer'
 import { LandmarkConceptLayer } from './components/LandmarkConceptLayer'
 import { LandmarkScene } from './components/LandmarkScene'
@@ -16,6 +16,8 @@ import {
   SHARE_STATE_VERSION,
   type ShareStateV1,
 } from './lib/shareState'
+
+import { scanPixelSize } from './lib/scanLayout'
 
 const DEFAULT_URL = 'https://example.com'
 
@@ -40,6 +42,16 @@ export default function App() {
   const [landmarkId, setLandmarkId] = useState<LandmarkId>(
     initialShareState.landmarkId,
   )
+  const frameRef = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const frame = frameRef.current
+    if (!frame || typeof ResizeObserver === 'undefined') return
+    const update = () => frame.style.setProperty('--qr-size', `${scanPixelSize(frame.clientWidth, frame.clientHeight)}px`)
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(frame)
+    return () => observer.disconnect()
+  }, [])
   const [urlError, setUrlError] = useState('')
   const [sceneFailed, setSceneFailed] = useState(false)
   const {
@@ -106,14 +118,13 @@ export default function App() {
     <main className="app-shell">
       <section className="hero-copy">
         <div>
-          <p className="eyebrow">LANDMARK QR · PROTOTYPE 01</p>
+          <p className="eyebrow">LANDMARK QR / THE ARCHITECTURE COLLECTION</p>
           <h1>
             Paste a link.
             <span>Create a landmark.</span>
           </h1>
           <p className="hero-description">
-            A real landmark first. Tap it and the building breaks into modules,
-            turns toward you and becomes a scannable QR in the same scene.
+            A little architecture. A link worth sharing. Explore a landmark, then tap to reveal your QR.
           </p>
         </div>
         <div className="hero-badge">
@@ -161,7 +172,7 @@ export default function App() {
             </div>
 
             <div className="landmark-grid">
-              {landmarks.map((item) => {
+              {landmarks.filter(item => item.ready).map((item) => {
                 const selected = item.id === landmarkId
                 return (
                   <button
@@ -183,13 +194,15 @@ export default function App() {
                 )
               })}
             </div>
+            <details className="upcoming-themes"><summary>7 more landmarks · Coming soon</summary>
+              {landmarks.filter(item => !item.ready).map(item => <button type="button" className="landmark-card" disabled key={item.id}>{item.name}</button>)}
+            </details>
           </div>
 
           <div className="architecture-note">
-            <span>ENGINE RULE</span>
+            <span>YOUR LINK, A NEW PERSPECTIVE</span>
             <p>
-              Landmark models are replaceable assets. QR generation, interaction and
-              scan safety stay shared across every theme.
+              Choose a destination. Explore the miniature. Tap to scan, or share the interactive experience.
             </p>
           </div>
         </aside>
@@ -217,12 +230,11 @@ export default function App() {
             </button>
           </div>
 
-          <div className="scene-frame" data-phase={phase}>
+          <div ref={frameRef} className="scene-frame" data-phase={phase}>
             <LandmarkScene
               value={encodedUrl}
               landmarkId={landmarkId}
               phase={phase}
-              reducedMotion={false}
               onRevealRequest={handleReveal}
               onRevealComplete={completeReveal}
               onReturnComplete={completeReturn}
@@ -253,7 +265,7 @@ export default function App() {
                     : 'Tap the building to transform · Drag to rotate · Pinch to zoom'
                   : phase === 'returning'
                     ? 'Rebuilding the landmark…'
-                    : 'Building modules are becoming your QR…'}
+                    : 'Revealing your QR…'}
               </div>
             )}
           </div>

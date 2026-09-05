@@ -1,41 +1,7 @@
-import { forwardRef, type SVGProps } from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { QR_ERROR_CORRECTION_LEVEL, QR_QUIET_ZONE_MODULES } from '../lib/qr'
 import { InlineScanLayer } from './InlineScanLayer'
-
-type MockQrProps = SVGProps<SVGSVGElement> & {
-  value: string
-  level: string
-  marginSize: number
-  title?: string
-  imageSettings?: {
-    src: string
-    width: number
-    height: number
-    excavate: boolean
-  }
-}
-
-vi.mock('qrcode.react', () => ({
-  QRCodeSVG: forwardRef<SVGSVGElement, MockQrProps>(
-    ({ value, level, marginSize, title, imageSettings, ...props }, ref) => (
-      <svg
-        ref={ref}
-        data-value={value}
-        data-level={level}
-        data-margin-size={marginSize}
-        aria-label={title}
-        data-image-src={imageSettings?.src}
-        data-image-width={imageSettings?.width}
-        data-image-height={imageSettings?.height}
-        data-image-excavate={imageSettings?.excavate}
-        {...props}
-      />
-    ),
-  ),
-}))
 
 const destinationUrl = 'https://example.com/destination'
 const shareUrl = 'https://example.com/landmark-qr/#/s/state'
@@ -70,13 +36,12 @@ describe('InlineScanLayer', () => {
     const qr = screen.getByLabelText(`QR code for ${destinationUrl}`)
     expect(qr).toHaveAttribute('data-value', destinationUrl)
     expect(qr).not.toHaveAttribute('data-value', shareUrl)
-    expect(qr).toHaveAttribute('data-level', QR_ERROR_CORRECTION_LEVEL)
-    expect(qr).toHaveAttribute(
-      'data-margin-size',
-      String(QR_QUIET_ZONE_MODULES),
+    expect(qr).toHaveAttribute('shape-rendering', 'crispEdges')
+    expect(qr.querySelector('image')).toHaveAttribute(
+      'data-landmark-mark',
+      'taipei-101',
     )
-    expect(qr).toHaveAttribute('data-image-excavate', 'true')
-    expect(qr.getAttribute('data-image-src')).toContain('data:image/svg+xml')
+    expect(qr.querySelectorAll('path')).toHaveLength(2)
   })
 
   it('returns from the clickable QR, Return button, and Escape', async () => {

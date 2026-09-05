@@ -1,6 +1,7 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useLayoutEffect, useRef, type RefObject } from 'react'
 import * as THREE from 'three'
+import { QR_PLANE_SIZE, QR_SURFACE_Y, scanPixelSize } from '../lib/scanLayout'
 import type { LandmarkCamera } from '../data/landmarks'
 import type { ExperiencePhase } from '../hooks/useExperiencePhase'
 
@@ -35,6 +36,7 @@ type SceneCameraControllerProps = {
   cameraConfig: LandmarkCamera
   phase: ExperiencePhase
   subjectRef?: RefObject<THREE.Group | null>
+  alignedScan?: boolean
   reducedMotion?: boolean
   onRevealComplete?: () => void
   onReturnComplete?: () => void
@@ -125,6 +127,7 @@ export function useReducedMotionPreference() {
 
 export function SceneCameraController({
   cameraConfig,
+  alignedScan = false,
   phase,
   subjectRef,
   reducedMotion,
@@ -136,6 +139,7 @@ export function SceneCameraController({
   const previousPhaseRef = useRef<ExperiencePhase | null>(null)
   const activeTransitionRef = useRef<ActiveTransition | null>(null)
   const revealStartPoseRef = useRef<CameraPose | null>(null)
+  const revealSizeRef = useRef({ width: 0, height: 0 })
   const subjectHalfExtentRef = useRef(QR_FLOOR_HALF_EXTENT)
   const callbacksRef = useRef({ onRevealComplete, onReturnComplete })
   callbacksRef.current = { onRevealComplete, onReturnComplete }
@@ -163,6 +167,11 @@ export function SceneCameraController({
     const perspectiveCamera = camera as THREE.PerspectiveCamera
     const aspect = Math.max(size.width / Math.max(size.height, 1), 0.1)
     const fov = THREE.MathUtils.degToRad(perspectiveCamera.fov || 38)
+    if (alignedScan) {
+      const pixels = scanPixelSize(size.width, size.height)
+      const height = QR_PLANE_SIZE * size.height / (2 * pixels * Math.tan(fov * 0.5))
+      return poseLookingAt(new THREE.Vector3(0, height + QR_SURFACE_Y, 0), new THREE.Vector3(0, QR_SURFACE_Y, 0), TOP_DOWN_UP)
+    }
     const halfExtent = subjectHalfExtentRef.current * TOP_DOWN_MARGIN
     const verticalHalfExtent = halfExtent / Math.min(aspect, 1)
     const height = Math.max(
@@ -177,6 +186,8 @@ export function SceneCameraController({
     )
   }
 
+  const responsiveDesignPose = () => designPose({ ...cameraConfig,
+    distance: cameraConfig.distance * Math.max(1, 1.05 * size.height / Math.max(size.width, 1)) })
   const copyPose = (pose: CameraPose) => {
     camera.position.copy(pose.position)
     camera.quaternion.copy(pose.quaternion)
@@ -197,7 +208,7 @@ export function SceneCameraController({
 
     if (previousPhase === null) {
       if (phase === 'scan') copyPose(topDownPose())
-      else copyPose(designPose(cameraConfig))
+      else copyPose(responsiveDesignPose())
     }
 
     if (phase === 'revealing' && previousPhase !== 'revealing') {
@@ -207,6 +218,7 @@ export function SceneCameraController({
         position: from.position.clone(),
         quaternion: from.quaternion.clone(),
       }
+      revealSizeRef.current = { width: size.width, height: size.height }
       activeTransitionRef.current = {
         phase,
         elapsedSeconds: 0,
@@ -222,7 +234,9 @@ export function SceneCameraController({
         elapsedSeconds: 0,
         durationSeconds: prefersReducedMotion ? 0 : RETURN_DURATION_SECONDS,
         from: snapshotCamera(),
-        to: revealStartPoseRef.current ?? designPose(cameraConfig),
+        to: revealSizeRef.current.width === size.width && revealSizeRef.current.height === size.height
+          ? revealStartPoseRef.current ?? responsiveDesignPose()
+          : responsiveDesignPose(),
         completionDispatched: false,
       }
       if (prefersReducedMotion) completeTransition(activeTransitionRef.current)
@@ -231,7 +245,7 @@ export function SceneCameraController({
       copyPose(topDownPose())
     } else if (phase === 'explore') {
       activeTransitionRef.current = null
-      if (previousPhase === 'explore') copyPose(designPose(cameraConfig))
+      if (previousPhase === 'explore') copyPose(responsiveDesignPose())
     }
 
     previousPhaseRef.current = phase
@@ -249,7 +263,7 @@ export function SceneCameraController({
     const deltaSeconds = THREE.MathUtils.clamp(
       rawDeltaSeconds,
       0,
-      MAX_TRANSITION_DELTA_SECONDS,
+      Number.POSITIVE_INFINITY,
     )
     transition.elapsedSeconds += deltaSeconds
 

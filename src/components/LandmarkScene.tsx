@@ -12,6 +12,8 @@ import type { ExperiencePhase } from '../hooks/useExperiencePhase'
 import { GLBLandmark } from './GLBLandmark'
 import { LandmarkReveal } from './LandmarkReveal'
 import { LandmarkModel } from './ProceduralLandmarks'
+import { QrPlaza } from './QrPlaza'
+import { PlazaGarden } from './PlazaGarden'
 import { QRMorphField } from './QRMorphField'
 import { QrVoxelField } from './QrVoxelField'
 import {
@@ -131,7 +133,15 @@ function DecorativeScene({
       />
       <directionalLight position={[-4, 3, -2]} intensity={0.65} color="#91b8ff" />
 
-      {landmark.voxelQr ? (
+      {landmark.plazaQr ? (
+        <>
+          <LandmarkReveal phase={phase} subjectRef={subjectRef} reducedMotion={reducedMotion} onRevealRequest={onRevealRequest}>
+            <LandmarkAsset landmark={landmark} />
+            <PlazaGarden />
+          </LandmarkReveal>
+          <QrPlaza value={value} phase={phase} reducedMotion={reducedMotion} onRevealRequest={onRevealRequest} />
+        </>
+      ) : landmark.voxelQr ? (
         <QrVoxelField
           value={value}
           landmarkId={landmark.id}
@@ -172,6 +182,7 @@ function DecorativeScene({
 
       <SceneCameraController
         cameraConfig={landmark.camera}
+        alignedScan={landmark.plazaQr}
         phase={phase}
         subjectRef={subjectRef}
         reducedMotion={reducedMotion}
@@ -185,11 +196,10 @@ function DecorativeScene({
           makeDefault
           enablePan={false}
           minDistance={Math.max(4.5, landmark.camera.distance * 0.62)}
-          maxDistance={landmark.camera.distance * 1.4}
+          maxDistance={landmark.camera.distance * 2}
           minPolarAngle={Math.PI * 0.18}
           maxPolarAngle={Math.PI * 0.48}
           target={[0, landmark.camera.targetY, 0]}
-          autoRotate
           autoRotateSpeed={0.42}
           dampingFactor={0.08}
           enableDamping
@@ -245,6 +255,7 @@ export function LandmarkScene({
         fallback={<SceneUnavailable />}
       >
         <DecorativeScene
+          key={landmark.id}
           value={value}
           landmark={landmark}
           phase={activePhase}
