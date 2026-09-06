@@ -83,7 +83,7 @@ describe('share-state codec', () => {
   it.each([
     [{ ...stateFor('taipei-101'), v: 2 }, 'unsupported-version'],
     [{ ...stateFor('taipei-101'), landmarkId: 'unknown-landmark' }, 'invalid-landmark-id'],
-    [{ ...stateFor('taipei-101'), landmarkId: 'statue-of-liberty' }, 'invalid-landmark-id'],
+    [{ ...stateFor('taipei-101'), landmarkId: 'not-in-registry' }, 'invalid-landmark-id'],
     [{ ...stateFor('taipei-101'), presetId: 'unknown-preset' }, 'invalid-preset-id'],
     [{ ...stateFor('taipei-101'), url: 'javascript:alert(1)' }, 'invalid-url'],
     [{ ...stateFor('taipei-101'), script: '<script>alert(1)</script>' }, 'invalid-state'],

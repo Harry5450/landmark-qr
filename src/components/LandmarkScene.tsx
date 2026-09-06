@@ -10,8 +10,9 @@ import {
 } from '../data/landmarks'
 import type { ExperiencePhase } from '../hooks/useExperiencePhase'
 import { GLBLandmark } from './GLBLandmark'
+import { ConceptLandmark } from './ConceptLandmark'
 import { LandmarkReveal } from './LandmarkReveal'
-import { LandmarkModel } from './ProceduralLandmarks'
+import { hasProceduralLandmark, LandmarkModel } from './ProceduralLandmarks'
 import { QrPlaza } from './QrPlaza'
 import { PlazaGarden } from './PlazaGarden'
 import { QRMorphField } from './QRMorphField'
@@ -39,9 +40,9 @@ type SceneErrorBoundaryState = {
   hasError: boolean
 }
 
-function SceneUnavailable() {
+function SceneUnavailable({ ariaHidden = false }: { ariaHidden?: boolean }) {
   return (
-    <div className="scene-status is-error" role="status">
+    <div className="scene-status is-error" role="status" aria-hidden={ariaHidden}>
       3D preview unavailable. Scan Mode remains available.
     </div>
   )
@@ -88,13 +89,19 @@ function LandmarkAsset({ landmark }: { landmark: Landmark }) {
     )
   }
 
+  const hasProceduralModel = hasProceduralLandmark(landmark.id)
+
   return (
     <group
       position={landmark.transform.position}
       rotation={landmark.transform.rotation}
       scale={landmark.transform.scale}
     >
-      <LandmarkModel id={landmark.id} />
+      {hasProceduralModel ? (
+        <LandmarkModel id={landmark.id} />
+      ) : landmark.conceptImage ? (
+        <ConceptLandmark src={landmark.conceptImage} accent={landmark.accent} />
+      ) : null}
     </group>
   )
 }
@@ -170,7 +177,7 @@ function DecorativeScene({
         </>
       )}
 
-      {!landmark.voxelQr && phase !== 'scan' && !landmark.conceptImage && (
+      {!landmark.voxelQr && phase !== 'scan' && (landmark.plazaQr || !landmark.conceptImage) && (
         <ContactShadows
           position={[0, -0.13, 0]}
           opacity={0.32}
@@ -252,7 +259,7 @@ export function LandmarkScene({
           far: 100,
         }}
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-        fallback={<SceneUnavailable />}
+        fallback={<SceneUnavailable ariaHidden />}
       >
         <DecorativeScene
           key={landmark.id}

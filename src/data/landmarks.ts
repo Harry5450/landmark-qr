@@ -58,9 +58,13 @@ const defaultTransform: LandmarkTransform = {
   rotation: [0, 0, 0],
 }
 
-const defaultCamera: LandmarkCamera = {
-  distance: 8,
-  targetY: 1.5,
+const conceptCamera: LandmarkCamera = {
+  distance: 10.5,
+  targetY: 1.8,
+}
+
+function referenceAssetPath(fileName: string) {
+  return `${import.meta.env.BASE_URL}assets/references/${fileName}`
 }
 
 export const landmarks: Landmark[] = [
@@ -95,6 +99,8 @@ export const landmarks: Landmark[] = [
     source: { type: 'procedural' },
     transform: { ...defaultTransform },
     camera: { distance: 8, targetY: 1.7 },
+    conceptImage: referenceAssetPath('eiffel-tower-concept-transparent.png'),
+    plazaQr: true,
   },
   {
     id: 'sydney-opera-house',
@@ -107,6 +113,8 @@ export const landmarks: Landmark[] = [
     source: { type: 'procedural' },
     transform: { ...defaultTransform },
     camera: { distance: 7.5, targetY: 0.9 },
+    conceptImage: referenceAssetPath('sydney-opera-house-concept-transparent.png'),
+    plazaQr: true,
   },
   {
     id: 'statue-of-liberty',
@@ -114,11 +122,13 @@ export const landmarks: Landmark[] = [
     city: 'New York',
     country: 'United States',
     emoji: '🇺🇸',
-    ready: false,
+    ready: true,
     accent: '#69b7a8',
     source: { type: 'procedural' },
     transform: { ...defaultTransform },
-    camera: { ...defaultCamera },
+    camera: { ...conceptCamera },
+    conceptImage: referenceAssetPath('statue-of-liberty-concept-transparent.png'),
+    plazaQr: true,
   },
   {
     id: 'big-ben',
@@ -126,11 +136,13 @@ export const landmarks: Landmark[] = [
     city: 'London',
     country: 'United Kingdom',
     emoji: '🇬🇧',
-    ready: false,
+    ready: true,
     accent: '#d0a65c',
     source: { type: 'procedural' },
     transform: { ...defaultTransform },
-    camera: { ...defaultCamera },
+    camera: { ...conceptCamera },
+    conceptImage: referenceAssetPath('big-ben-concept-transparent.png'),
+    plazaQr: true,
   },
   {
     id: 'colosseum',
@@ -138,11 +150,13 @@ export const landmarks: Landmark[] = [
     city: 'Rome',
     country: 'Italy',
     emoji: '🇮🇹',
-    ready: false,
+    ready: true,
     accent: '#d89b72',
     source: { type: 'procedural' },
     transform: { ...defaultTransform },
-    camera: { ...defaultCamera },
+    camera: { ...conceptCamera },
+    conceptImage: referenceAssetPath('colosseum-concept-transparent.png'),
+    plazaQr: true,
   },
   {
     id: 'giza-pyramid',
@@ -150,11 +164,13 @@ export const landmarks: Landmark[] = [
     city: 'Giza',
     country: 'Egypt',
     emoji: '🇪🇬',
-    ready: false,
+    ready: true,
     accent: '#d8b66b',
     source: { type: 'procedural' },
     transform: { ...defaultTransform },
-    camera: { ...defaultCamera },
+    camera: { ...conceptCamera },
+    conceptImage: referenceAssetPath('giza-pyramid-concept-transparent.png'),
+    plazaQr: true,
   },
   {
     id: 'taj-mahal',
@@ -162,11 +178,13 @@ export const landmarks: Landmark[] = [
     city: 'Agra',
     country: 'India',
     emoji: '🇮🇳',
-    ready: false,
+    ready: true,
     accent: '#eee7d7',
     source: { type: 'procedural' },
     transform: { ...defaultTransform },
-    camera: { ...defaultCamera },
+    camera: { ...conceptCamera },
+    conceptImage: referenceAssetPath('taj-mahal-concept-transparent.png'),
+    plazaQr: true,
   },
   {
     id: 'christ-redeemer',
@@ -174,11 +192,13 @@ export const landmarks: Landmark[] = [
     city: 'Rio de Janeiro',
     country: 'Brazil',
     emoji: '🇧🇷',
-    ready: false,
+    ready: true,
     accent: '#d8ded8',
     source: { type: 'procedural' },
     transform: { ...defaultTransform },
-    camera: { ...defaultCamera },
+    camera: { ...conceptCamera },
+    conceptImage: referenceAssetPath('christ-redeemer-concept-transparent.png'),
+    plazaQr: true,
   },
   {
     id: 'burj-khalifa',
@@ -186,11 +206,13 @@ export const landmarks: Landmark[] = [
     city: 'Dubai',
     country: 'United Arab Emirates',
     emoji: '🇦🇪',
-    ready: false,
+    ready: true,
     accent: '#8ca8b9',
     source: { type: 'procedural' },
     transform: { ...defaultTransform },
-    camera: { ...defaultCamera },
+    camera: { ...conceptCamera },
+    conceptImage: referenceAssetPath('burj-khalifa-concept-transparent.png'),
+    plazaQr: true,
   },
 ]
 

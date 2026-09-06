@@ -21,3 +21,7 @@ export function LandmarkModel({ id }: LandmarkModelProps) {
   const Model = proceduralLandmarks[id]
   return Model ? <Model /> : null
 }
+
+export function hasProceduralLandmark(id: LandmarkId) {
+  return Boolean(proceduralLandmarks[id])
+}

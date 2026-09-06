@@ -1,6 +1,5 @@
 import { FormEvent, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { InlineScanLayer } from './components/InlineScanLayer'
-import { LandmarkConceptLayer } from './components/LandmarkConceptLayer'
 import { LandmarkScene } from './components/LandmarkScene'
 import {
   initialLandmarkId,
@@ -36,6 +35,8 @@ function readInitialShareState(): ShareStateV1 {
 }
 
 export default function App() {
+  const liveLandmarkCount = landmarks.filter((item) => item.ready).length
+  const queuedLandmarkCount = landmarks.length - liveLandmarkCount
   const [initialShareState] = useState(readInitialShareState)
   const [draftUrl, setDraftUrl] = useState(initialShareState.url)
   const [encodedUrl, setEncodedUrl] = useState(initialShareState.url)
@@ -129,7 +130,7 @@ export default function App() {
         </div>
         <div className="hero-badge">
           <span className="status-dot" />
-          3 themes live · 7 queued
+          {liveLandmarkCount} themes live · {queuedLandmarkCount} queued
         </div>
       </section>
 
@@ -194,9 +195,11 @@ export default function App() {
                 )
               })}
             </div>
-            <details className="upcoming-themes"><summary>7 more landmarks · Coming soon</summary>
-              {landmarks.filter(item => !item.ready).map(item => <button type="button" className="landmark-card" disabled key={item.id}>{item.name}</button>)}
-            </details>
+            {queuedLandmarkCount > 0 && (
+              <details className="upcoming-themes"><summary>{queuedLandmarkCount} more landmarks · Coming soon</summary>
+                {landmarks.filter(item => !item.ready).map(item => <button type="button" className="landmark-card" disabled key={item.id}>{item.name}</button>)}
+              </details>
+            )}
           </div>
 
           <div className="architecture-note">
@@ -240,14 +243,6 @@ export default function App() {
               onReturnComplete={completeReturn}
               onSceneUnavailable={handleSceneUnavailable}
             />
-            {landmark.conceptImage && !landmark.voxelQr && (
-              <LandmarkConceptLayer
-                src={landmark.conceptImage}
-                landmarkName={landmark.name}
-                phase={phase}
-                onTransform={handleReveal}
-              />
-            )}
             <InlineScanLayer
               destinationUrl={encodedUrl}
               landmarkName={landmark.name}

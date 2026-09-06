@@ -6,9 +6,12 @@ Turn a URL into a 3D landmark QR experience.
 
 - URL → QR matrix
 - Landmark-first reveal: the initial frame reads as architecture, not a QR code
-- Same-scene 1.5-second camera and voxel transition into the QR matrix
+- Same-scene 1.6-second camera, landmark, and plaza transition into the QR matrix
 - Inline canonical QR result with return, copy, share, and download actions
-- Landmark themes: Taipei 101, Eiffel Tower, Sydney Opera House
+- Landmark themes: ten complete transparent concept previews, including Taipei
+  101, Eiffel Tower, Sydney Opera House, Statue of Liberty, Elizabeth Tower,
+  Colosseum, Great Pyramid of Giza, Taj Mahal, Christ the Redeemer, and Burj
+  Khalifa
 - Orbit / touch preview
 - High-contrast Scan Mode for reliable scanning
 - Architecture prepared for the full 10-landmark series
@@ -36,17 +39,13 @@ so visual styling never compromises QR readability.
 
 ## Current Taipei 101 Prototype
 
-The Taipei 101 opening frame currently uses the approved concept render as a
-true-alpha PNG cutout in `public/assets/references/`. This is a deliberate 2.5D
-bridge: it gives the opening frame the requested architectural fidelity while the
-production GLB is still unavailable. The cutout runs a continuous turntable
-motion and also responds to horizontal drag. Clicking the building fades it into
-a deterministic, tiered Taipei 101 instanced-module silhouette. The modules first
-collapse in depth into a flat landmark silhouette, then travel only within that
-plane to their nearest QR positions; the white substrate appears only at the end.
-The final H-level QR excavates only a bounded
-center area for a Taipei 101 mark; its finder patterns and four-module quiet zone
-remain untouched and are covered by automated decode read-back.
+Taipei 101 is the reference implementation for the shared reveal path. Its
+authored procedural model and perimeter garden are wrapped by `LandmarkReveal`;
+`QrPlaza` owns the destination matrix and flattens the plaza tiles while
+`SceneCameraController` hands the same frame to a top-down scan pose. The final
+H-level QR excavates only a bounded center area for a Taipei 101 mark; its finder
+patterns and four-module quiet zone remain untouched and are covered by automated
+decode read-back.
 
 Keep both files during asset review:
 
@@ -105,9 +104,9 @@ assets.
 ## Landmark Registry
 
 Each `Landmark` entry describes its `source`, optional concept image, `transform`,
-and `camera`. Procedural and GLB landmarks share the same `LandmarkScene`, morph
-field, and canonical QR layer. The registry is the only place that should decide
-which asset source a landmark uses.
+and `camera`. Procedural, concept-fallback, and GLB landmarks share the same
+`LandmarkScene`, plaza reveal, and canonical QR layer. The registry is the only
+place that should decide which asset source a landmark uses.
 
 ## Procedural Fallback
 
@@ -148,25 +147,31 @@ browser, so missing `public/models/` assets are safe during local development.
 9. Christ the Redeemer
 10. Burj Khalifa
 
-The first MVP implements three procedural landmark placeholders. They are intentionally replaceable with optimized GLB models later without changing the QR engine.
+All ten registry entries now have a reviewed transparent concept preview. Taipei
+101, Eiffel Tower, and Sydney Opera House use authored procedural geometry; the
+other seven use their concept cutout inside the same Canvas subject while the
+production geometry pipeline is prepared. Concept previews are presentation
+assets only and are not substitutes for approved GLB files.
 
 ## Roadmap
 
-1. Prototype the full interaction with procedural placeholder landmarks.
-2. Replace placeholders with optimized GLB assets based on the approved visual concept series.
+1. Keep the full interaction and ten concept previews stable.
+2. Replace concept previews with optimized GLB assets based on the approved visual concept series, one landmark at a time.
 3. Add automatic scan validation and mobile performance budgets.
-4. Expand from 3 implemented landmarks to all 10 landmark themes.
+4. Keep the ten-theme registry aligned as each concept preview graduates to a production landmark asset.
 
 ## Architecture collection preview
 
-Taipei 101 now uses the shared `plazaQr` scene path. The building and perimeter
-garden collapse while the plaza tiles flatten into a QR. `QrPlaza` and
-`CanonicalQr` both use `createQrMatrix`; the Taipei 101 scan output adds a
-small, excavated landmark mark in the center and keeps finder patterns untouched.
+All ten ready themes now use the shared `plazaQr` scene path. The landmark subject
+and perimeter garden collapse while the plaza tiles flatten into a QR.
+`QrPlaza` and `CanonicalQr` both use `createQrMatrix`; the Taipei 101 scan output
+adds a small, excavated landmark mark in the center and keeps finder patterns untouched.
 `scanLayout` defines the world extent and display size used by the camera and SVG,
 so the planar endpoint hands off at the same screen position. The WebGL canvas is
 hidden only in the final scan state; return restores it for the reverse animation.
-The other two landmarks retain their existing procedural models and morph paths.
+Concept-only themes remain presentation fallbacks until an approved procedural or
+GLB asset replaces them; their reveal, camera, QR, and Scan Mode behavior is the
+same as Taipei 101.
 
 The default view no longer auto-rotates. Drag/touch orbit remains available.
 Upcoming themes are collapsed, the hero is shorter, and mobile uses a fixed scene
